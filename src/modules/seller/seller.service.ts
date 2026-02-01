@@ -49,11 +49,9 @@ const deleteMedicine = async (sellerId: string, medicineId: string) => {
 
 
 
-
 // ===== EXPORT =====
 export const SellerService = {
   addMedicine,
   updateMedicine,
   deleteMedicine,
-  
 };
