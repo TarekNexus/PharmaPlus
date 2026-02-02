@@ -9,7 +9,7 @@ const addReview = async (req: Request, res: Response) => {
 };
 
 const getReviewsForMedicine = async (req: Request, res: Response) => {
-  const reviews = await ReviewService.getReviewsForMedicine(req.params.medicineId);
+  const reviews = await ReviewService.getReviewsForMedicine(req.params.medicineId as string);
   res.json(reviews);
 };
 
