@@ -11,10 +11,27 @@ const addMedicine = async (sellerId: string, data: any) => {
       throw new Error(`Category with id ${data.categoryId} does not exist`);
     }
 
-    return await prisma.medicine.create({
-      data: { ...data, sellerId },
-      include: { category: true, seller: true },
-    });
+  return await prisma.medicine.create({
+  data: { ...data, sellerId },
+  select: {
+    id: true,
+    name: true,
+    price: true,
+    category: {
+      select: {
+        id: true,
+        name: true
+      }
+    },
+    seller: {
+      select: {
+        id: true,
+        name: true
+      }
+    }
+  }
+});
+
   } catch (error) {
     throw error;
   }
