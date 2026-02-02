@@ -919,15 +919,11 @@ var getAllCategories4 = async (_req, res) => {
 var getMedicinesByCategory2 = async (req, res) => {
   try {
     const categoryId = req.params.categoryId;
-    const medicines = await MedicineService.getMedicinesByCategory(categoryId);
-    res.status(200).json({
-      success: true,
-      message: `Medicines for category fetched successfully`,
-      data: medicines
-    });
+    const result = await MedicineService.getMedicinesByCategory(categoryId);
+    return res.status(200).json(result);
   } catch (error) {
     console.error(error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to fetch medicines by category",
       error: error.message || error
