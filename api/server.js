@@ -116,20 +116,42 @@ var addMedicine = async (sellerId, data) => {
     if (!category) {
       throw new Error(`Category with id ${data.categoryId} does not exist`);
     }
-    return await prisma.medicine.create({
+    const medicine = await prisma.medicine.create({
       data: { ...data, sellerId },
-      include: { category: true, seller: true }
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        stock: true,
+        description: true,
+        image: true,
+        sellerId: true,
+        categoryId: true
+      }
     });
+    return {
+      success: true,
+      message: "Medicine added successfully",
+      data: medicine
+    };
   } catch (error) {
     throw error;
   }
 };
 var updateMedicine = async (sellerId, medicineId, data) => {
   try {
-    return await prisma.medicine.updateMany({
+    const result = await prisma.medicine.updateMany({
       where: { id: medicineId, sellerId },
       data
     });
+    if (result.count === 0) {
+      throw new Error("Medicine not found or not authorized");
+    }
+    return {
+      success: true,
+      message: "Medicine updated successfully",
+      data: result
+    };
   } catch (error) {
     throw error;
   }
@@ -142,7 +164,11 @@ var deleteMedicine = async (sellerId, medicineId) => {
     if (result.count === 0) {
       throw new Error("Medicine not found or not authorized");
     }
-    return result;
+    return {
+      success: true,
+      message: "Medicine deleted successfully",
+      data: result
+    };
   } catch (error) {
     throw error;
   }
@@ -779,10 +805,20 @@ var getMedicineById = (id) => prisma.medicine.findUnique({
   include: { category: true, seller: true }
 });
 var getAllCategories3 = () => prisma.category.findMany({ orderBy: { createdAt: "desc" } });
+var getMedicinesByCategory = async (categoryId) => {
+  const category = await prisma.category.findUnique({ where: { id: categoryId } });
+  if (!category) return [];
+  return prisma.medicine.findMany({
+    where: { categoryId },
+    select: { id: true, name: true, price: true, stock: true, description: true, image: true, sellerId: true, categoryId: true },
+    orderBy: { createdAt: "desc" }
+  });
+};
 var MedicineService = {
   getAllMedicines: getAllMedicines3,
   getMedicineById,
-  getAllCategories: getAllCategories3
+  getAllCategories: getAllCategories3,
+  getMedicinesByCategory
 };
 
 // src/modules/medicine/medicine.controller.ts
@@ -843,17 +879,37 @@ var getAllCategories4 = async (_req, res) => {
     });
   }
 };
+var getMedicinesByCategory2 = async (req, res) => {
+  try {
+    const categoryId = req.params.categoryId;
+    const medicines = await MedicineService.getMedicinesByCategory(categoryId);
+    res.status(200).json({
+      success: true,
+      message: `Medicines for category fetched successfully`,
+      data: medicines
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch medicines by category",
+      error: error.message || error
+    });
+  }
+};
 var MedicineController = {
   getAllMedicines: getAllMedicines4,
   getMedicineById: getMedicineById2,
+  getMedicinesByCategory: getMedicinesByCategory2,
   getAllCategories: getAllCategories4
 };
 
 // src/modules/medicine/medicine.router.ts
 var router4 = Router4();
-router4.get("/", MedicineController.getAllMedicines);
-router4.get("/:id", MedicineController.getMedicineById);
 router4.get("/categories/all", MedicineController.getAllCategories);
+router4.get("/getMedicinesByCategory/:categoryId", MedicineController.getMedicinesByCategory);
+router4.get("/:id", MedicineController.getMedicineById);
+router4.get("/", MedicineController.getAllMedicines);
 var medicineRouter = router4;
 
 // src/modules/order/order.router.ts
