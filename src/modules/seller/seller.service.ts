@@ -3,7 +3,6 @@ import { prisma } from "../../lib/prisma";
 // ===== MEDICINES =====
 const addMedicine = async (sellerId: string, data: any) => {
   try {
-
     const category = await prisma.category.findUnique({
       where: { id: data.categoryId },
     });
@@ -12,21 +11,17 @@ const addMedicine = async (sellerId: string, data: any) => {
       throw new Error(`Category with id ${data.categoryId} does not exist`);
     }
 
- 
     const medicine = await prisma.medicine.create({
-      data: { ...data, sellerId },
-      select: {
-        id: true,
-        name: true,
-        price: true,
-        stock: true,
-        category: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-       
+     data: { ...data, sellerId },
+  select: {
+    id: true,
+    name: true,
+    price: true,
+    stock: true,
+    description: true, 
+    image: true,    
+    sellerId: true,
+    categoryId: true,
       },
     });
 
@@ -41,7 +36,11 @@ const addMedicine = async (sellerId: string, data: any) => {
   }
 };
 
-const updateMedicine = async (sellerId: string, medicineId: string, data: any) => {
+const updateMedicine = async (
+  sellerId: string,
+  medicineId: string,
+  data: any,
+) => {
   try {
     const result = await prisma.medicine.updateMany({
       where: { id: medicineId, sellerId },
