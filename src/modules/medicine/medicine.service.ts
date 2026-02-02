@@ -17,12 +17,21 @@ const getAllCategories = () =>
   prisma.category.findMany({ orderBy: { createdAt: "desc" } });
 
 const getMedicinesByCategory = async (categoryId: string) => {
+  // Find category first
+  const category = await prisma.category.findUnique({
+    where: { id: categoryId },
+  });
+  if (!category) {
+    return {
+      success: false,
+      message: "Category not found",
+      categoryName: null,
+      data: [],
+    };
+  }
 
-  const category = await prisma.category.findUnique({ where: { id: categoryId } });
-  if (!category) return [];
-
-  // Fetch medicines with category name
-  return prisma.medicine.findMany({
+  // Fetch medicines with nested category
+  const medicines = await prisma.medicine.findMany({
     where: { categoryId },
     select: {
       id: true,
@@ -32,13 +41,33 @@ const getMedicinesByCategory = async (categoryId: string) => {
       description: true,
       image: true,
       sellerId: true,
-      categoryId: true,     
-      category: {           
-        select: { name: true } 
-      }
+      categoryId: true,
+      category: {
+        select: { name: true },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
+
+  // Map medicines to remove nested category object (optional)
+  const data = medicines.map(m => ({
+    id: m.id,
+    name: m.name,
+    price: m.price,
+    stock: m.stock,
+    description: m.description,
+    image: m.image,
+    sellerId: m.sellerId,
+    categoryId: m.categoryId,
+  }));
+
+  // Return top-level response
+  return {
+    success: true,
+    message: "Medicines for category fetched successfully",
+    categoryName: category.name,
+    data,
+  };
 };
 
 

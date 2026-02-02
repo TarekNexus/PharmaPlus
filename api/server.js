@@ -806,9 +806,18 @@ var getMedicineById = (id) => prisma.medicine.findUnique({
 });
 var getAllCategories3 = () => prisma.category.findMany({ orderBy: { createdAt: "desc" } });
 var getMedicinesByCategory = async (categoryId) => {
-  const category = await prisma.category.findUnique({ where: { id: categoryId } });
-  if (!category) return [];
-  return prisma.medicine.findMany({
+  const category = await prisma.category.findUnique({
+    where: { id: categoryId }
+  });
+  if (!category) {
+    return {
+      success: false,
+      message: "Category not found",
+      categoryName: null,
+      data: []
+    };
+  }
+  const medicines = await prisma.medicine.findMany({
     where: { categoryId },
     select: {
       id: true,
@@ -825,6 +834,22 @@ var getMedicinesByCategory = async (categoryId) => {
     },
     orderBy: { createdAt: "desc" }
   });
+  const data = medicines.map((m) => ({
+    id: m.id,
+    name: m.name,
+    price: m.price,
+    stock: m.stock,
+    description: m.description,
+    image: m.image,
+    sellerId: m.sellerId,
+    categoryId: m.categoryId
+  }));
+  return {
+    success: true,
+    message: "Medicines for category fetched successfully",
+    categoryName: category.name,
+    data
+  };
 };
 var MedicineService = {
   getAllMedicines: getAllMedicines3,
