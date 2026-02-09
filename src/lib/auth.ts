@@ -10,6 +10,7 @@ export const auth = betterAuth({
   trustedOrigins: [process.env.FRONTEND_URL!],
   emailAndPassword: {
     enabled: true,
+    autoSignIn: false 
   },
    user: {
     additionalFields: {

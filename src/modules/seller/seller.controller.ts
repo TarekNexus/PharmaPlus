@@ -64,11 +64,39 @@ const deleteMedicine = async (req: Request, res: Response) => {
   }
 };
 
+const getMyMedicines = async (req: Request, res: Response) => {
+  try {
+    const medicines = await SellerService.getMyMedicines(req.user!.id);
 
+    res.status(200).json({
+      success: true,
+      message: "My medicines fetched successfully",
+      data: medicines.data,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch medicines",
+      error: error.message || error,
+    });
+  }
+};
+
+const getOrders = async (req: Request, res: Response) => {
+  try {
+    const orders = await SellerService.getOrders(req.user!.id);
+    res.status(200).json({ success: true, data: orders });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
 
 // ===== EXPORT =====
 export const SellerController = {
   addMedicine,
   updateMedicine,
   deleteMedicine,
+  getMyMedicines,
+  getOrders
 };

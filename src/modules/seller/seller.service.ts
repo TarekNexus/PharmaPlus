@@ -82,9 +82,65 @@ const deleteMedicine = async (sellerId: string, medicineId: string) => {
   }
 };
 
+// ===== GET CURRENT SELLER MEDICINES =====
+const getMyMedicines = async (sellerId: string) => {
+  try {
+    const medicines = await prisma.medicine.findMany({
+      where: { sellerId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        stock: true,
+        description: true,
+        Manufacturer: true,
+        image: true,
+        sellerId: true,
+        category: { select: { id: true, name: true } }, // <-- add this
+        createdAt: true,
+      },
+    });
+
+    return {
+      success: true,
+      message: "My medicines fetched successfully",
+      data: medicines,
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getOrders = async (sellerId: string) => {
+  // Fetch orders that include at least one item sold by this seller
+  const orders = await prisma.order.findMany({
+    where: {
+      items: {
+        some: {
+          medicine: {
+            sellerId: sellerId,
+          },
+        },
+      },
+    },
+    include: {
+      items: {
+        include: {
+          medicine: true, // includes medicine info
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return orders;
+};
 // ===== EXPORT =====
 export const SellerService = {
   addMedicine,
   updateMedicine,
   deleteMedicine,
+  getMyMedicines,
+  getOrders
 };
