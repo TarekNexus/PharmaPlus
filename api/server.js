@@ -89,7 +89,8 @@ var auth = betterAuth({
   }),
   trustedOrigins: [process.env.FRONTEND_URL],
   emailAndPassword: {
-    enabled: true
+    enabled: true,
+    autoSignIn: false
   },
   user: {
     additionalFields: {
@@ -183,10 +184,63 @@ var deleteMedicine = async (sellerId, medicineId) => {
     throw error;
   }
 };
+var getMyMedicines = async (sellerId) => {
+  try {
+    const medicines = await prisma.medicine.findMany({
+      where: { sellerId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        stock: true,
+        description: true,
+        Manufacturer: true,
+        image: true,
+        sellerId: true,
+        category: { select: { id: true, name: true } },
+        // <-- add this
+        createdAt: true
+      }
+    });
+    return {
+      success: true,
+      message: "My medicines fetched successfully",
+      data: medicines
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+var getOrders = async (sellerId) => {
+  const orders = await prisma.order.findMany({
+    where: {
+      items: {
+        some: {
+          medicine: {
+            sellerId
+          }
+        }
+      }
+    },
+    include: {
+      items: {
+        include: {
+          medicine: true
+          // includes medicine info
+        }
+      }
+    },
+    orderBy: { createdAt: "desc" }
+  });
+  return orders;
+};
 var SellerService = {
   addMedicine,
   updateMedicine,
-  deleteMedicine
+  deleteMedicine,
+  getMyMedicines,
+  getOrders
 };
 
 // src/modules/seller/seller.controller.ts
@@ -248,10 +302,37 @@ var deleteMedicine2 = async (req, res) => {
     });
   }
 };
+var getMyMedicines2 = async (req, res) => {
+  try {
+    const medicines = await SellerService.getMyMedicines(req.user.id);
+    res.status(200).json({
+      success: true,
+      message: "My medicines fetched successfully",
+      data: medicines.data
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch medicines",
+      error: error.message || error
+    });
+  }
+};
+var getOrders2 = async (req, res) => {
+  try {
+    const orders = await SellerService.getOrders(req.user.id);
+    res.status(200).json({ success: true, data: orders });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
 var SellerController = {
   addMedicine: addMedicine2,
   updateMedicine: updateMedicine2,
-  deleteMedicine: deleteMedicine2
+  deleteMedicine: deleteMedicine2,
+  getMyMedicines: getMyMedicines2,
+  getOrders: getOrders2
 };
 
 // src/middleware/auth.ts
@@ -293,9 +374,15 @@ var auth_default = auth2;
 
 // src/modules/seller/seller.router.ts
 var router = Router();
+router.get("/order", auth_default("SELLER" /* SELLER */, "ADMIN" /* ADMIN */), SellerController.getOrders);
 router.post("/medicines", auth_default("SELLER" /* SELLER */, "ADMIN" /* ADMIN */), SellerController.addMedicine);
 router.put("/medicines/:id", auth_default("SELLER" /* SELLER */, "ADMIN" /* ADMIN */), SellerController.updateMedicine);
 router.delete("/medicines/:id", auth_default("SELLER" /* SELLER */, "ADMIN" /* ADMIN */), SellerController.deleteMedicine);
+router.get(
+  "/my-medicines",
+  auth_default("SELLER" /* SELLER */),
+  SellerController.getMyMedicines
+);
 var SellerRouter = router;
 
 // src/modules/admin/admin.router.ts
@@ -540,7 +627,7 @@ var updateProfile = async (userId, data) => {
     data: allowedData
   });
 };
-var getOrders = async (userId) => {
+var getOrders3 = async (userId) => {
   const orders = await prisma.order.findMany({
     where: { userId },
     include: { items: { include: { medicine: true } } },
@@ -673,7 +760,7 @@ var cancelOrder = async (userId, orderId) => {
 var CustomerService = {
   getProfile,
   updateProfile,
-  getOrders,
+  getOrders: getOrders3,
   getOrderById,
   createOrder,
   addReview,
@@ -698,7 +785,7 @@ var updateProfile2 = async (req, res) => {
     res.status(400).json({ success: false, message: "Failed to update profile", error: error.message });
   }
 };
-var getOrders2 = async (req, res) => {
+var getOrders4 = async (req, res) => {
   try {
     const orders = await CustomerService.getOrders(req.user.id);
     res.status(200).json({ success: true, data: orders });
@@ -778,7 +865,7 @@ var cancelOrder2 = async (req, res) => {
 var CustomerController = {
   getProfile: getProfile2,
   updateProfile: updateProfile2,
-  getOrders: getOrders2,
+  getOrders: getOrders4,
   getOrderById: getOrderById2,
   createOrder: createOrder2,
   addReview: addReview2,
@@ -995,7 +1082,7 @@ var medicineRouter = router4;
 import { Router as Router5 } from "express";
 
 // src/modules/order/order.service.ts
-var getOrders3 = async (sellerId) => {
+var getOrders5 = async (sellerId) => {
   return prisma.order.findMany({
     include: {
       items: { include: { medicine: true } }
@@ -1037,12 +1124,12 @@ var updateOrderStatus = async (orderId, status, user) => {
   });
 };
 var OrderService = {
-  getOrders: getOrders3,
+  getOrders: getOrders5,
   updateOrderStatus
 };
 
 // src/modules/order/order.controller.ts
-var getOrders4 = async (req, res) => {
+var getOrders6 = async (req, res) => {
   try {
     const orders = await OrderService.getOrders(req.user.id);
     res.status(200).json({ success: true, data: orders });
@@ -1076,7 +1163,7 @@ var updateOrderStatus2 = async (req, res) => {
   }
 };
 var OrderController = {
-  getOrders: getOrders4,
+  getOrders: getOrders6,
   updateOrderStatus: updateOrderStatus2
 };
 

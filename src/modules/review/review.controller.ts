@@ -1,19 +1,25 @@
 import { Request, Response } from "express";
 import { ReviewService } from "./review.service";
 
-
 const addReview = async (req: Request, res: Response) => {
   const { medicineId, rating, comment } = req.body;
-  const review = await ReviewService.addReview(req.user!.id, medicineId, rating, comment);
-  res.json(review);
+  try {
+    const review = await ReviewService.addReview(req.user!.id, medicineId, rating, comment);
+    res.json({ success: true, data: review });
+  } catch (err: any) {
+    res.status(400).json({ success: false, message: err.message });
+  }
 };
 
 const getReviewsForMedicine = async (req: Request, res: Response) => {
-  const reviews = await ReviewService.getReviewsForMedicine(req.params.medicineId as string);
-  res.json(reviews);
+  try {
+    const reviews = await ReviewService.getReviewsForMedicine(req.params.medicineId as string);
+    res.json({ success: true, data: reviews });
+  } catch (err: any) {
+    res.status(400).json({ success: false, message: err.message });
+  }
 };
 
-// ===== EXPORT =====
 export const ReviewController = {
   addReview,
   getReviewsForMedicine,

@@ -102,33 +102,14 @@ const getOrderById = async (userId: string, orderId: string) => {
 };
 
 // ===== REVIEWS =====
+// ===== REVIEWS =====
 const addReview = async (
   userId: string,
   medicineId: string,
   rating: number,
   comment: string
 ) => {
-  // Check if review already exists
-  const existingReview = await prisma.review.findUnique({
-    where: { userId_medicineId: { userId, medicineId } },
-  });
-
-  if (existingReview) {
-    // Update existing review
-    return prisma.review.update({
-      where: { userId_medicineId: { userId, medicineId } },
-      data: { rating, comment },
-      select: {
-        id: true,
-        rating: true,
-        comment: true,
-        createdAt: true,
-        user: { select: { id: true, name: true, image: true } },
-      },
-    });
-  }
-
-  // Create new review if it doesn't exist
+  // Simply create a new review (allows multiple reviews per user)
   return prisma.review.create({
     data: { userId, medicineId, rating, comment },
     select: {
@@ -140,7 +121,6 @@ const addReview = async (
     },
   });
 };
-
 
 const getReviewsForMedicine = async (medicineId: string) => {
   return prisma.review.findMany({

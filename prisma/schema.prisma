@@ -155,18 +155,12 @@ model OrderItem {
 }
 
 model Review {
-  id      String @id @default(uuid())
-  rating  Int
-  comment String
-
+  id         String   @id @default(cuid())
   userId     String
   medicineId String
-
-  createdAt DateTime @default(now())
-
-  user     User     @relation(fields: [userId], references: [id])
-  medicine Medicine @relation(fields: [medicineId], references: [id])
-
-  @@unique([userId, medicineId])  
-  @@index([medicineId])
+  rating     Int
+  comment    String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  medicine   Medicine @relation(fields: [medicineId], references: [id])
 }

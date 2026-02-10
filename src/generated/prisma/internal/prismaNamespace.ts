@@ -1231,10 +1231,10 @@ export type OrderItemScalarFieldEnum = (typeof OrderItemScalarFieldEnum)[keyof t
 
 export const ReviewScalarFieldEnum = {
   id: 'id',
-  rating: 'rating',
-  comment: 'comment',
   userId: 'userId',
   medicineId: 'medicineId',
+  rating: 'rating',
+  comment: 'comment',
   createdAt: 'createdAt'
 } as const
 

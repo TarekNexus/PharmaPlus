@@ -1,8 +1,10 @@
 import { prisma } from "../../lib/prisma";
 
-// ===== REVIEWS =====
 const addReview = (userId: string, medicineId: string, rating: number, comment: string) =>
-  prisma.review.create({ data: { userId, medicineId, rating, comment } });
+  prisma.review.create({
+    data: { userId, medicineId, rating, comment },
+    include: { user: true },
+  });
 
 const getReviewsForMedicine = (medicineId: string) =>
   prisma.review.findMany({
@@ -11,7 +13,6 @@ const getReviewsForMedicine = (medicineId: string) =>
     orderBy: { createdAt: "desc" },
   });
 
-// ===== EXPORT =====
 export const ReviewService = {
   addReview,
   getReviewsForMedicine,
