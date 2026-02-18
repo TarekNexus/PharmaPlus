@@ -10,6 +10,7 @@ router.get("/getMedicinesByCategory/:categoryId", MedicineController.getMedicine
 router.get("/:id", MedicineController.getMedicineById);
 router.get("/", MedicineController.getAllMedicines);
 router.put("/:id",auth(UserRole.SELLER,UserRole.ADMIN), MedicineController.updateMedicine);
+router.delete("/:id", auth(UserRole.SELLER, UserRole.ADMIN), MedicineController.deleteMedicine);
 
 
 

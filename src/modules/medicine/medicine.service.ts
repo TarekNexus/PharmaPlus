@@ -81,6 +81,16 @@ const updateMedicine = async (medicineId: string, data: any) => {
     throw error;
   }
 };
+const deleteMedicine = async (medicineId: string) => {
+  try {
+    const deleted = await prisma.medicine.delete({
+      where: { id: medicineId },
+    });
+    return deleted;
+  } catch (error) {
+    throw error;
+  }
+};
 
 
 
@@ -90,5 +100,6 @@ export const MedicineService = {
   getMedicineById,
   getAllCategories,
   getMedicinesByCategory,
-  updateMedicine
+  updateMedicine,
+   deleteMedicine,
 };

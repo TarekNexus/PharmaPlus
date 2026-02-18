@@ -105,6 +105,25 @@ const updateMedicine = async (req: Request, res: Response) => {
     });
   }
 };
+const deleteMedicine = async (req: Request, res: Response) => {
+  try {
+    const medicineId = req.params.id;
+    const deleted = await MedicineService.deleteMedicine(medicineId as string);
+
+    res.status(200).json({
+      success: true,
+      message: "Medicine deleted successfully",
+      data: deleted,
+    });
+  } catch (error: any) {
+    console.error(error);
+    res.status(400).json({
+      success: false,
+      message: "Failed to delete medicine",
+      error: error.message || error,
+    });
+  }
+};
 
 
 // ===== EXPORT OBJECT =====
@@ -113,5 +132,6 @@ export const MedicineController = {
   getMedicineById,
   getMedicinesByCategory,
   getAllCategories,
-  updateMedicine
+  updateMedicine,
+  deleteMedicine,
 };
